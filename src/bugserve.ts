@@ -15,10 +15,21 @@ export const checkBugserveCase = (bodyString: string): boolean => {
     )
 
     if (endIndex >= 0) {
-      const middleString = bodyString.slice(
+      let middleString = bodyString.slice(
         startIndex + startString.length,
         endIndex
       )
+      const commentStart = middleString.indexOf('<!--')
+      const commentEnd = middleString.indexOf('-->')
+
+      if (commentStart >= 0 && commentEnd > commentStart) {
+        middleString = middleString.replace(
+          middleString.slice(commentStart, commentEnd + 3),
+          ''
+        )
+      }
+
+      middleString = middleString.replace('###', '')
 
       if (/\S/.exec(middleString)) {
         return true
