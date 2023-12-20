@@ -9,15 +9,16 @@ branding:
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  pull_request_body:
+    description: 'the body of pull request'
     required: true
-    default: '1000'
-
+  pull_request_head:
+    description: 'the head branch of pull request'
+    required: true
 # Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  result:
+    description: 'Is the body of pull request validate or not'
 
 runs:
   using: node20

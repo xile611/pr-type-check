@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import { checkBugserveCase } from './bugserve'
 
 /**
  * The main function for the action.
@@ -7,18 +7,21 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const body: string = core.getInput('pull_request_body')
+    const pull_request_head: string = core.getInput('pull_request_head')
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    if (pull_request_head && /^(fix\/)(\S+)/.exec(pull_request_head)) {
+      if (!checkBugserveCase(body)) {
+        core.setFailed(
+          `Can't find case id of bugserver in the pull request body`
+        )
+        core.setOutput('result', false)
+        return
+      }
+    }
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
+    core.setOutput('result', true)
     // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)

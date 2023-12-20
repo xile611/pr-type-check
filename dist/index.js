@@ -2722,6 +2722,36 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 422:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkBugserveCase = void 0;
+const checkBugserveCase = (bodyString) => {
+    if (!bodyString) {
+        return false;
+    }
+    const startString = '🐞 Bugserver case id';
+    const endString = '💡 Background and solution';
+    const startIndex = bodyString.indexOf(startString);
+    if (startIndex >= 0) {
+        const endIndex = bodyString.indexOf(endString, startIndex + startString.length);
+        if (endIndex >= 0) {
+            const middleString = bodyString.slice(startIndex + startString.length, endIndex);
+            if (/\S/.exec(middleString)) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+exports.checkBugserveCase = checkBugserveCase;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2753,22 +2783,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(186));
-const wait_1 = __nccwpck_require__(259);
+const bugserve_1 = __nccwpck_require__(422);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const ms = core.getInput('milliseconds');
-        // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-        core.debug(`Waiting ${ms} milliseconds ...`);
-        // Log the current timestamp, wait, then log the new timestamp
-        core.debug(new Date().toTimeString());
-        await (0, wait_1.wait)(parseInt(ms, 10));
-        core.debug(new Date().toTimeString());
+        const body = core.getInput('pull_request_body');
+        const pull_request_head = core.getInput('pull_request_head');
+        if (pull_request_head && /^(fix\/)(\S+)/.exec(pull_request_head)) {
+            if (!(0, bugserve_1.checkBugserveCase)(body)) {
+                core.setFailed(`Can't find case id of bugserver in the pull request body`);
+                core.setOutput('result', false);
+                return;
+            }
+        }
+        core.setOutput('result', true);
         // Set outputs for other workflow steps to use
-        core.setOutput('time', new Date().toTimeString());
     }
     catch (error) {
         // Fail the workflow run if an error occurs
@@ -2777,31 +2809,6 @@ async function run() {
     }
 }
 exports.run = run;
-
-
-/***/ }),
-
-/***/ 259:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.wait = void 0;
-/**
- * Wait for a number of milliseconds.
- * @param milliseconds The number of milliseconds to wait.
- * @returns {Promise<string>} Resolves with 'done!' after the wait is over.
- */
-async function wait(milliseconds) {
-    return new Promise(resolve => {
-        if (isNaN(milliseconds)) {
-            throw new Error('milliseconds not a number');
-        }
-        setTimeout(() => resolve('done!'), milliseconds);
-    });
-}
-exports.wait = wait;
 
 
 /***/ }),
