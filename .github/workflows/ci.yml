@@ -55,8 +55,10 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          pull_request_head: fix/test
+          pull_request_body:
+            '🐞 Bugserver case id\n sssssf111 💡 Background and solution'
 
       - name: Print Output
         id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+        run: echo "${{ steps.test-action.outputs.result }}"
